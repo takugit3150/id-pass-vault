@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ID PASS Vault">
+  <title>ID PASS Vault Pro</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <style>
+    :root{
+      color-scheme:light;
+      --bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;
+      --primary:#0f172a;--primaryText:#fff;--soft:#e2e8f0;--danger:#b91c1c;--ok:#047857;
+      --shadow:0 12px 32px rgba(15,23,42,.08)
+    }
+    html[data-theme="dark"]{
+      color-scheme:dark;
+      --bg:#070b12;--card:#111827;--text:#f8fafc;--muted:#94a3b8;--line:#273449;
+      --primary:#f8fafc;--primaryText:#0f172a;--soft:#243044;--danger:#fca5a5;--ok:#6ee7b7;
+      --shadow:none
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    button,input,textarea,select{font:inherit} button{cursor:pointer}
+    .app{max-width:820px;margin:auto;min-height:100vh;padding:env(safe-area-inset-top) 14px calc(95px + env(safe-area-inset-bottom))}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 2px 10px;position:sticky;top:0;background:linear-gradient(var(--bg) 78%,transparent);z-index:5}
+    h1{font-size:22px;margin:0}.sub{font-size:12px;color:var(--muted)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+    .stack{display:grid;gap:12px}.row{display:flex;gap:10px}.row>*{flex:1}.row.wrap{flex-wrap:wrap}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}
+    input,textarea,select{width:100%;border:1px solid var(--line);border-radius:13px;padding:13px;background:var(--card);color:var(--text);outline:none}
+    input:focus,textarea:focus,select:focus{border-color:#94a3b8;box-shadow:0 0 0 3px rgba(100,116,139,.14)}
+    textarea{min-height:88px;resize:vertical}
+    .btn{border:0;border-radius:13px;padding:12px 14px;background:var(--soft);color:var(--text);font-weight:750}
+    .btn.primary{background:var(--primary);color:var(--primaryText)}.btn.danger{background:rgba(185,28,28,.12);color:var(--danger)}
+    .btn.ghost{background:transparent;border:1px solid var(--line)}.btn.small{padding:8px 10px;font-size:13px}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .toolbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin:12px 0}
+    .filters{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:12px}
+    .item{padding:14px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}
+    .itemtop{display:flex;justify-content:space-between;gap:10px}.title{font-weight:850}.meta{font-size:13px;color:var(--muted);margin-top:4px;word-break:break-all}
+    .badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:var(--soft);font-size:11px;margin-top:7px}
+    .star{border:0;background:transparent;font-size:23px;color:#f59e0b;padding:0 4px}
+    .actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.empty{text-align:center;color:var(--muted);padding:36px 10px}
+    .hidden{display:none!important}.notice{font-size:12px;line-height:1.65;color:var(--muted)}.status{font-size:13px;min-height:18px}.ok{color:var(--ok)}.err{color:var(--danger)}
+    .fab{position:fixed;right:max(18px,calc((100vw - 820px)/2 + 18px));bottom:calc(20px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;border:0;background:var(--primary);color:var(--primaryText);font-size:30px;box-shadow:0 14px 30px rgba(15,23,42,.28)}
+    dialog{width:min(94vw,650px);max-height:88vh;overflow:auto;border:0;border-radius:22px;padding:0;background:var(--card);color:var(--text);box-shadow:0 24px 80px rgba(0,0,0,.35)}
+    dialog::backdrop{background:rgba(0,0,0,.48)}.modal{padding:18px}.modal h2{margin:0 0 14px;font-size:20px}.modalfooter{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+    .eye-wrap{display:flex;gap:8px}.eye-wrap input{flex:1}.generator{border:1px dashed var(--line);padding:12px;border-radius:14px}
+    .switchrow{display:flex;align-items:center;justify-content:space-between;gap:14px}.switchrow input{width:auto;transform:scale(1.2)}
+    @media(max-width:560px){.filters{grid-template-columns:1fr 1fr}.filters .full{grid-column:1/-1}.row.mobile-stack{display:grid}.toolbar{grid-template-columns:1fr auto}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <section id="setupView" class="stack" style="padding-top:7vh">
+    <div><h1>ID PASS Vault Pro</h1><div class="sub">暗号化・Face ID対応</div></div>
+    <div class="card stack">
+      <div id="setupTitle" style="font-weight:850;font-size:18px">マスターパスワードを設定</div>
+      <div class="notice">マスターパスワードを忘れると復元できません。12文字以上を推奨します。</div>
+      <div><label>マスターパスワード</label><input id="masterInput" type="password" autocomplete="current-password"></div>
+      <div id="confirmWrap"><label>確認用</label><input id="masterConfirm" type="password" autocomplete="new-password"></div>
+      <button id="unlockBtn" class="btn primary">保管庫を作成</button>
+      <button id="faceUnlockBtn" class="btn hidden">Face IDで開く</button>
+      <div id="setupStatus" class="status"></div>
+    </div>
+  </section>
+
+  <section id="vaultView" class="hidden">
+    <header>
+      <div><h1>ID PASS Vault Pro</h1><div class="sub" id="countText">0件</div></div>
+      <button id="lockBtn" class="btn small ghost">ロック</button>
+    </header>
+    <div class="toolbar"><input id="searchInput" type="search" placeholder="サービス名・ID・メモで検索"><button id="menuBtn" class="btn small">管理</button></div>
+    <div class="filters">
+      <select id="categoryFilter"><option value="">全カテゴリー</option></select>
+      <select id="sortFilter"><option value="updated">更新順</option><option value="name">名前順</option></select>
+      <label class="btn small full" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:0"><input id="favoriteOnly" type="checkbox" style="width:auto">お気に入りのみ</label>
+    </div>
+    <div id="list" class="card"></div>
+    <button id="addBtn" class="fab" aria-label="追加">＋</button>
+  </section>
+</div>
+
+<dialog id="itemDialog">
+<form method="dialog" class="modal" id="itemForm">
+  <h2 id="itemDialogTitle">新規追加</h2>
+  <div class="stack">
+    <input id="editId" type="hidden">
+    <div class="row mobile-stack">
+      <div><label>サービス名</label><input id="service" required placeholder="例：Amazon"></div>
+      <div><label>カテゴリー</label><input id="category" list="categoryList" placeholder="例：買い物"><datalist id="categoryList"></datalist></div>
+    </div>
+    <div><label>ID・メールアドレス</label><input id="loginId" required autocomplete="username"></div>
+    <div>
+      <label>パスワード</label>
+      <div class="eye-wrap"><input id="password" type="password" required autocomplete="off"><button id="togglePass" type="button" class="btn small">表示</button></div>
+    </div>
+    <div class="generator stack">
+      <div class="row mobile-stack">
+        <div><label>生成する長さ</label><input id="genLength" type="number" min="12" max="64" value="20"></div>
+        <div style="display:flex;align-items:end"><button id="generateBtn" type="button" class="btn" style="width:100%">強力なPASSを生成</button></div>
+      </div>
+      <label class="switchrow">記号を含める <input id="genSymbols" type="checkbox" checked></label>
+    </div>
+    <div><label>URL</label><input id="url" type="url" placeholder="https://"></div>
+    <div><label>メモ</label><textarea id="memo"></textarea></div>
+    <label class="switchrow">お気に入り <input id="favorite" type="checkbox"></label>
+  </div>
+  <div class="modalfooter"><button value="cancel" class="btn">キャンセル</button><button id="saveItemBtn" value="default" class="btn primary">保存</button></div>
+</form>
+</dialog>
+
+<dialog id="manageDialog">
+<div class="modal">
+  <h2>保管庫の管理</h2>
+  <div class="stack">
+    <button id="faceSetupBtn" class="btn">Face IDクイック解除を設定</button>
+    <button id="exportBtn" class="btn">暗号化バックアップを書き出す</button>
+    <label class="btn" style="text-align:center">暗号化バックアップを読み込む<input id="importInput" type="file" accept="application/json,.json" hidden></label>
+    <button id="shareBackupBtn" class="btn">iCloud Driveへバックアップ</button>
+    <div>
+      <label>ダークモード</label>
+      <select id="themeSelect"><option value="system">端末設定に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option></select>
+    </div>
+    <button id="changeMasterBtn" class="btn">マスターパスワード変更</button>
+    <button id="wipeBtn" class="btn danger">すべて削除</button>
+    <div class="notice">
+      iCloud同期は、暗号化バックアップをiCloud Driveへ保存し、別端末で読み込む方式です。
+      Face IDはHTTPSで公開したSafari／ホーム画面版で利用できます。コピー内容の30秒後消去は、アプリが前面にある場合に最も確実です。
+    </div>
+  </div>
+  <div class="modalfooter"><button id="closeManage" class="btn primary">閉じる</button></div>
+</div>
+</dialog>
+
+<script>
+'use strict';
+const STORE_KEY='id_pass_vault_pro_v2';
+const PREF_KEY='id_pass_vault_pro_prefs';
+const FACE_KEY='id_pass_vault_face_v1';
+const enc=new TextEncoder(), dec=new TextDecoder();
+let masterPassword='', entries=[], autoLockTimer, clipboardTimer;
+const $=id=>document.getElementById(id);
+const b64=buf=>btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const prefs=()=>{try{return JSON.parse(localStorage.getItem(PREF_KEY))||{}}catch{return{}}};
+const savePrefs=p=>localStorage.setItem(PREF_KEY,JSON.stringify(p));
+
+async function deriveKey(password,salt){
+  const material=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:350000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function encryptText(text,password){
+  const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await deriveKey(password,salt);
+  const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(text));
+  return {salt:b64(salt),iv:b64(iv),ciphertext:b64(cipher)};
+}
+async function decryptText(blob,password){
+  const key=await deriveKey(password,unb64(blob.salt));
+  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(blob.iv)},key,unb64(blob.ciphertext));
+  return dec.decode(plain);
+}
+async function encryptVault(data,password){
+  const body=await encryptText(JSON.stringify(data),password);
+  return {version:2,...body,updatedAt:new Date().toISOString()};
+}
+async function decryptVault(blob,password){return JSON.parse(await decryptText(blob,password))}
+function stored(){try{return JSON.parse(localStorage.getItem(STORE_KEY))}catch{return null}}
+async function persist(){localStorage.setItem(STORE_KEY,JSON.stringify(await encryptVault(entries,masterPassword)));resetAutoLock()}
+function setStatus(msg,type=''){$('setupStatus').textContent=msg;$('setupStatus').className='status '+type}
+function applyTheme(){
+  const mode=prefs().theme||'system';
+  const dark=mode==='dark'||(mode==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);
+  document.documentElement.dataset.theme=dark?'dark':'light';
+  $('themeSelect').value=mode;
+}
+matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',applyTheme);
+
+function faceAvailable(){return !!(window.PublicKeyCredential&&navigator.credentials&&window.isSecureContext)}
+function updateFaceButton(){
+  const cfg=localStorage.getItem(FACE_KEY);
+  $('faceUnlockBtn').classList.toggle('hidden',!(cfg&&faceAvailable()&&stored()));
+}
+function init(){
+  applyTheme();
+  const has=!!stored();
+  $('setupTitle').textContent=has?'保管庫を開く':'マスターパスワードを設定';
+  $('unlockBtn').textContent=has?'ロック解除':'保管庫を作成';
+  $('confirmWrap').classList.toggle('hidden',has);
+  updateFaceButton();
+}
+$('unlockBtn').onclick=async()=>{
+  const p=$('masterInput').value;
+  if(p.length<8){setStatus('8文字以上で入力してください。','err');return}
+  try{
+    const s=stored();
+    if(s){entries=await decryptVault(s,p)}
+    else{
+      if(p!==$('masterConfirm').value){setStatus('確認用パスワードが一致しません。','err');return}
+      entries=[];localStorage.setItem(STORE_KEY,JSON.stringify(await encryptVault(entries,p)));
+    }
+    masterPassword=p;$('masterInput').value='';$('masterConfirm').value='';showVault();
+  }catch{setStatus('パスワードが違うか、データが破損しています。','err')}
+};
+function showVault(){$('setupView').classList.add('hidden');$('vaultView').classList.remove('hidden');refreshCategories();render();resetAutoLock()}
+function lock(){masterPassword='';entries=[];$('vaultView').classList.add('hidden');$('setupView').classList.remove('hidden');setStatus('');init();clearTimeout(autoLockTimer)}
+function resetAutoLock(){clearTimeout(autoLockTimer);autoLockTimer=setTimeout(lock,5*60*1000)}
+['click','touchstart','keydown'].forEach(e=>document.addEventListener(e,()=>{if(masterPassword)resetAutoLock()},{passive:true}));
+$('lockBtn').onclick=lock;
+function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function refreshCategories(){
+  const cats=[...new Set(entries.map(x=>x.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
+  const current=$('categoryFilter').value;
+  $('categoryFilter').innerHTML='<option value="">全カテゴリー</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join('');
+  $('categoryFilter').value=cats.includes(current)?current:'';
+  $('categoryList').innerHTML=cats.map(c=>`<option value="${esc(c)}">`).join('');
+}
+function render(){
+  const q=$('searchInput').value.trim().toLowerCase();
+  const cat=$('categoryFilter').value;
+  let filtered=entries.filter(x=>
+    (!q||[x.service,x.loginId,x.memo,x.category].join(' ').toLowerCase().includes(q))&&
+    (!cat||x.category===cat)&&(!$('favoriteOnly').checked||x.favorite)
+  );
+  filtered.sort($('sortFilter').value==='name'
+    ?(a,b)=>a.service.localeCompare(b.service,'ja')
+    :(a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+  $('countText').textContent=`${entries.length}件`;
+  $('list').innerHTML=filtered.length?filtered.map(x=>`
+    <div class="item">
+      <div class="itemtop">
+        <div><div class="title">${esc(x.service)}</div><div class="meta">${esc(x.loginId)}</div>${x.category?`<span class="badge">${esc(x.category)}</span>`:''}</div>
+        <button class="star" data-star="${x.id}" aria-label="お気に入り">${x.favorite?'★':'☆'}</button>
+      </div>
+      <div class="actions">
+        <button class="btn small" data-copyid="${x.id}">IDコピー</button>
+        <button class="btn small" data-copypass="${x.id}">PASSコピー</button>
+        ${x.url?`<button class="btn small" data-open="${x.id}">開く</button>`:''}
+        <button class="btn small" data-edit="${x.id}">編集</button>
+        <button class="btn small danger" data-del="${x.id}">削除</button>
+      </div>
+    </div>`).join(''):'<div class="empty">該当する登録がありません</div>';
+}
+['searchInput','categoryFilter','sortFilter','favoriteOnly'].forEach(id=>$(id).addEventListener(id==='searchInput'?'input':'change',render));
+
+async function copyText(t){
+  try{
+    await navigator.clipboard.writeText(t);
+    alert('コピーしました。30秒後に消去します。');
+    clearTimeout(clipboardTimer);
+    clipboardTimer=setTimeout(async()=>{try{
+      const current=await navigator.clipboard.readText();
+      if(current===t)await navigator.clipboard.writeText('');
+    }catch{}},30000);
+  }catch{prompt('コピーしてください',t)}
+}
+$('list').onclick=async e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const id=b.dataset.copyid||b.dataset.copypass||b.dataset.open||b.dataset.edit||b.dataset.del||b.dataset.star;
+  const x=entries.find(v=>v.id===id);if(!x)return;
+  if(b.dataset.copyid)copyText(x.loginId);
+  if(b.dataset.copypass)copyText(x.password);
+  if(b.dataset.open)window.open(x.url,'_blank','noopener');
+  if(b.dataset.edit)openItem(x);
+  if(b.dataset.star){x.favorite=!x.favorite;x.updatedAt=new Date().toISOString();await persist();render()}
+  if(b.dataset.del&&confirm(`${x.service}を削除しますか？`)){entries=entries.filter(v=>v.id!==id);await persist();refreshCategories();render()}
+};
+function openItem(x=null){
+  $('itemDialogTitle').textContent=x?'編集':'新規追加';$('editId').value=x?.id||'';
+  $('service').value=x?.service||'';$('category').value=x?.category||'';$('loginId').value=x?.loginId||'';
+  $('password').value=x?.password||'';$('url').value=x?.url||'';$('memo').value=x?.memo||'';
+  $('favorite').checked=!!x?.favorite;$('password').type='password';$('togglePass').textContent='表示';$('itemDialog').showModal()
+}
+$('addBtn').onclick=()=>openItem();
+$('togglePass').onclick=()=>{const i=$('password');i.type=i.type==='password'?'text':'password';$('togglePass').textContent=i.type==='password'?'表示':'隠す'};
+$('generateBtn').onclick=()=>{
+  const length=Math.max(12,Math.min(64,Number($('genLength').value)||20));
+  let chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  if($('genSymbols').checked)chars+='!@#$%^&*_-+=?';
+  const r=new Uint32Array(length);crypto.getRandomValues(r);
+  $('password').value=Array.from(r,n=>chars[n%chars.length]).join('');
+  $('password').type='text';$('togglePass').textContent='隠す';
+};
+$('itemForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const obj={id:$('editId').value||crypto.randomUUID(),service:$('service').value.trim(),category:$('category').value.trim(),
+    loginId:$('loginId').value.trim(),password:$('password').value,url:$('url').value.trim(),memo:$('memo').value.trim(),
+    favorite:$('favorite').checked,updatedAt:new Date().toISOString()};
+  if(!obj.service||!obj.loginId||!obj.password)return;
+  const i=entries.findIndex(v=>v.id===obj.id);if(i>=0)entries[i]=obj;else entries.unshift(obj);
+  await persist();refreshCategories();$('itemDialog').close();render()
+});
+$('menuBtn').onclick=()=>$('manageDialog').showModal();$('closeManage').onclick=()=>$('manageDialog').close();
+function backupBlob(){return new Blob([localStorage.getItem(STORE_KEY)],{type:'application/json'})}
+$('exportBtn').onclick=()=>{
+  const a=document.createElement('a');a.href=URL.createObjectURL(backupBlob());a.download=`id-pass-vault-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+};
+$('shareBackupBtn').onclick=async()=>{
+  const file=new File([backupBlob()],`id-pass-vault-backup-${new Date().toISOString().slice(0,10)}.json`,{type:'application/json'});
+  try{
+    if(navigator.canShare?.({files:[file]})){await navigator.share({title:'ID PASS Vault 暗号化バックアップ',files:[file]})}
+    else{$('exportBtn').click();alert('ダウンロード後、共有から「ファイルに保存」→ iCloud Driveを選んでください。')}
+  }catch(e){if(e.name!=='AbortError')alert('共有できませんでした')}
+};
+$('importInput').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());const imported=await decryptVault(data,masterPassword);
+    if(!Array.isArray(imported))throw new Error();
+    if(!confirm('現在のデータをバックアップ内容で置き換えますか？'))return;
+    localStorage.setItem(STORE_KEY,JSON.stringify(data));entries=imported;refreshCategories();render();$('manageDialog').close();alert('復元しました')
+  }catch{alert('現在のマスターパスワードでは開けないか、ファイルが不正です')}
+  e.target.value=''
+};
+$('themeSelect').onchange=()=>{const p=prefs();p.theme=$('themeSelect').value;savePrefs(p);applyTheme()};
+$('changeMasterBtn').onclick=async()=>{
+  const np=prompt('新しいマスターパスワード（8文字以上）');if(!np||np.length<8)return alert('8文字以上で入力してください');
+  const c=prompt('確認のためもう一度入力');if(np!==c)return alert('一致しません');
+  masterPassword=np;await persist();localStorage.removeItem(FACE_KEY);updateFaceButton();alert('変更しました。Face IDは再設定してください。')
+};
+$('wipeBtn').onclick=()=>{if(confirm('登録データをすべて削除しますか？')&&confirm('この操作は元に戻せません。本当に削除しますか？')){localStorage.removeItem(STORE_KEY);localStorage.removeItem(FACE_KEY);$('manageDialog').close();lock()}};
+
+async function setupFace(){
+  if(!faceAvailable())return alert('Face IDを使うにはHTTPSで公開し、Safariで開いてください。');
+  try{
+    const challenge=crypto.getRandomValues(new Uint8Array(32));
+    const userId=crypto.getRandomValues(new Uint8Array(16));
+    const cred=await navigator.credentials.create({publicKey:{
+      challenge,rp:{name:'ID PASS Vault Pro'},user:{id:userId,name:'vault-user',displayName:'Vault User'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
+      timeout:60000,attestation:'none'
+    }});
+    const deviceSecret=b64(crypto.getRandomValues(new Uint8Array(32)));
+    const wrapped=await encryptText(masterPassword,deviceSecret);
+    localStorage.setItem(FACE_KEY,JSON.stringify({credentialId:b64(cred.rawId),deviceSecret,wrapped}));
+    updateFaceButton();alert('Face IDクイック解除を設定しました。')
+  }catch(e){if(e.name!=='NotAllowedError')alert('Face IDの設定に失敗しました。')}
+}
+$('faceSetupBtn').onclick=setupFace;
+$('faceUnlockBtn').onclick=async()=>{
+  try{
+    const cfg=JSON.parse(localStorage.getItem(FACE_KEY));
+    const challenge=crypto.getRandomValues(new Uint8Array(32));
+    await navigator.credentials.get({publicKey:{challenge,allowCredentials:[{type:'public-key',id:unb64(cfg.credentialId)}],userVerification:'required',timeout:60000}});
+    const p=await decryptText(cfg.wrapped,cfg.deviceSecret);
+    entries=await decryptVault(stored(),p);masterPassword=p;showVault()
+  }catch(e){if(e.name!=='NotAllowedError')setStatus('Face IDで開けませんでした。マスターパスワードを使用してください。','err')}
+};
+
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&masterPassword)resetAutoLock()});
+init();
+</script>
+</body>
+</html>

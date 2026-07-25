@@ -1,0 +1,17 @@
+{
+  "name": "ID PASS Vault Pro",
+  "short_name": "ID PASS",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "description": "端末内暗号化のID・パスワード保管庫",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
